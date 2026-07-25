@@ -135,12 +135,7 @@ export default function Home() {
       >
         <strong>DocQA</strong>
         {state.status === "ready" && (
-          <span
-            className="mono"
-            style={{ fontSize: 13, color: "var(--text-muted)" }}
-          >
-            {state.filename}
-          </span>
+          <span className="mono filename-text">{state.filename}</span>
         )}
       </header>
 

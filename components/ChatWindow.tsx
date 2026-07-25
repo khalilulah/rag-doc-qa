@@ -6,6 +6,7 @@ import type { Message } from "@/app/page";
 import MessageBubble from "./MessageBubble";
 // components/ChatWindow.tsx — top of file
 import { Send } from "lucide-react";
+import EmptyState from "./EmptyState";
 
 export default function ChatWindow({
   messages,
@@ -39,66 +40,71 @@ export default function ChatWindow({
       }}
     >
       <div style={{ flex: 1, overflowY: "auto", padding: "24px 24px 8px" }}>
-        {messages.length === 0 && (
-          <p style={{ color: "var(--text-muted)" }}>
-            Ask anything about your document.
-          </p>
-        )}
-        {messages.map((m, i) => (
-          <MessageBubble
-            key={i}
-            message={m}
-            isStreaming={
-              isAsking && i === messages.length - 1 && m.role === "assistant"
-            }
-          />
-        ))}
+        <div style={{ maxWidth: 720, margin: "0 auto" }}>
+          {messages.length === 0 ? (
+            <EmptyState onExample={onAsk} />
+          ) : (
+            messages.map((m, i) => (
+              <MessageBubble
+                key={i}
+                message={m}
+                isStreaming={
+                  isAsking &&
+                  i === messages.length - 1 &&
+                  m.role === "assistant"
+                }
+              />
+            ))
+          )}
 
-        <div ref={bottomRef} />
+          <div ref={bottomRef} />
+        </div>
       </div>
 
       <div
         className="chat-input-row"
         style={{
           display: "flex",
-          gap: 8,
+          justifyContent: "center",
           padding: 16,
           borderTop: "1px solid var(--border)",
         }}
       >
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && submit()}
-          placeholder="Ask a question…"
-          disabled={isAsking}
-          style={{
-            flex: 1,
-            padding: "10px 14px",
-            borderRadius: "var(--radius-sm)",
-            border: "1px solid var(--border)",
-            fontFamily: "inherit",
-            fontSize: 16, // 16px, not 14 — prevents iOS Safari auto-zooming into the input on focus
-          }}
-        />
+        <div style={{ display: "flex", gap: 8, width: "100%", maxWidth: 720 }}>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && submit()}
+            placeholder="Ask a question…"
+            disabled={isAsking}
+            style={{
+              flex: 1,
+              padding: "10px 14px",
+              borderRadius: "var(--radius-sm)",
+              border: "1px solid var(--border)",
+              fontFamily: "inherit",
+              fontSize: 16, // 16px, not 14 — prevents iOS Safari auto-zooming into the input on focus
+            }}
+          />
 
-        <button
-          onClick={submit}
-          disabled={isAsking}
-          style={{
-            padding: "10px 16px",
-            borderRadius: "var(--radius-sm)",
-            border: "none",
-            background: "var(--accent)",
-            color: "white",
-            display: "grid",
-            placeItems: "center",
-            cursor: isAsking ? "default" : "pointer",
-            opacity: isAsking ? 0.6 : 1,
-          }}
-        >
-          <Send size={18} />
-        </button>
+          <button
+            onClick={submit}
+            disabled={isAsking}
+            style={{
+              padding: "10px 16px",
+              borderRadius: "var(--radius-sm)",
+              border: "none",
+              background: "var(--accent)",
+              color: "white",
+              display: "grid",
+              placeItems: "center",
+              cursor: isAsking ? "default" : "pointer",
+              opacity: isAsking ? 0.6 : 1,
+            }}
+          >
+            <Send size={18} />
+          </button>
+        </div>
       </div>
     </div>
   );

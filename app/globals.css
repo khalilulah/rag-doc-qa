@@ -154,3 +154,14 @@ body {
     animation: none !important;
   }
 }
+
+.filename-text {
+  color: var(--text-muted);
+  font-size: 13px; /* Default size for desktop */
+}
+
+@media (max-width: 600px) {
+  .filename-text {
+    font-size: 9px; /* Smaller size for mobile screens */
+  }
+}

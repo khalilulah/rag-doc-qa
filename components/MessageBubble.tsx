@@ -21,15 +21,15 @@ export default function MessageBubble({
         marginBottom: 16,
       }}
     >
-      <div style={{ maxWidth: "min(75%, 420px)" }}>
+      <div style={{}}>
         <div
           style={{
             padding: "12px 16px",
             borderRadius: "var(--radius-lg)",
-            background: isUser ? "var(--accent)" : "var(--surface)",
+            background: isUser ? "var(--accent)" : "",
             color: isUser ? "white" : "var(--text)",
-            boxShadow: isUser ? "none" : "var(--shadow-rest)",
-            border: isUser ? "none" : "1px solid var(--border)",
+            boxShadow: isUser ? "none" : "",
+            border: isUser ? "none" : "",
             whiteSpace: "pre-wrap",
             fontSize: 14.5,
             lineHeight: 1.55,
