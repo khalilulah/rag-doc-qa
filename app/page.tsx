@@ -49,11 +49,17 @@ export default function Home() {
     }
   }
 
+  // app/page.tsx — handleAsk replaced
   async function handleAsk(question: string) {
     if (state.status !== "ready") return;
 
     setError(null);
-    setMessages((prev) => [...prev, { role: "user", content: question }]);
+    // push the user's question, plus an empty assistant message we'll fill in as tokens arrive
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", content: question },
+      { role: "assistant", content: "" },
+    ]);
     setIsAsking(true);
 
     try {
@@ -62,18 +68,55 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ documentId: state.documentId, question }),
       });
-      const data = await res.json();
 
-      if (!res.ok) throw new Error(data.error ?? "Something went wrong");
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Something went wrong");
+      }
 
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: data.answer, citations: data.citations },
-      ]);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? ""; // last entry may be a half-received line — hold it for the next chunk
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          const event = JSON.parse(line);
+
+          if (event.type === "citations") {
+            setMessages((prev) => {
+              const next = [...prev];
+              next[next.length - 1] = {
+                ...next[next.length - 1],
+                citations: event.citations,
+              };
+              return next;
+            });
+          } else if (event.type === "token") {
+            setMessages((prev) => {
+              const next = [...prev];
+              const last = next[next.length - 1];
+              next[next.length - 1] = {
+                ...last,
+                content: last.content + event.content,
+              };
+              return next;
+            });
+          } else if (event.type === "error") {
+            throw new Error(event.message);
+          }
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to get an answer");
-      // roll back the user's message so it doesn't look like it was answered
-      setMessages((prev) => prev.slice(0, -1));
+      setMessages((prev) => prev.slice(0, -2)); // remove both the question and the empty placeholder
     } finally {
       setIsAsking(false);
     }

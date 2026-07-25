@@ -88,3 +88,19 @@ body {
     padding: 12px !important;
   }
 }
+
+/* globals.css — append */
+.stream-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 14px;
+  background: var(--text);
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  animation: cursorBlink 0.8s step-end infinite;
+}
+@keyframes cursorBlink {
+  50% {
+    opacity: 0;
+  }
+}

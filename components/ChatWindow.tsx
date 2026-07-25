@@ -43,30 +43,15 @@ export default function ChatWindow({
           </p>
         )}
         {messages.map((m, i) => (
-          <MessageBubble key={i} message={m} />
+          <MessageBubble
+            key={i}
+            message={m}
+            isStreaming={
+              isAsking && i === messages.length - 1 && m.role === "assistant"
+            }
+          />
         ))}
-        {isAsking && (
-          <div
-            className="message-in"
-            style={{ display: "flex", marginBottom: 16 }}
-          >
-            <div
-              style={{
-                padding: "12px 16px",
-                borderRadius: "var(--radius-lg)",
-                background: "var(--surface)",
-                border: "1px solid var(--border)",
-                boxShadow: "var(--shadow-rest)",
-                display: "flex",
-                gap: 4,
-              }}
-            >
-              <span className="typing-dot" />
-              <span className="typing-dot" />
-              <span className="typing-dot" />
-            </div>
-          </div>
-        )}
+
         <div ref={bottomRef} />
       </div>
 

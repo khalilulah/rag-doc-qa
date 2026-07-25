@@ -2,8 +2,15 @@
 import type { Message } from "@/app/page";
 import CitationChips from "./CitationChips";
 
-export default function MessageBubble({ message }: { message: Message }) {
+export default function MessageBubble({
+  message,
+  isStreaming,
+}: {
+  message: Message;
+  isStreaming?: boolean;
+}) {
   const isUser = message.role === "user";
+  const isEmpty = message.content.length === 0;
 
   return (
     <div
@@ -14,7 +21,7 @@ export default function MessageBubble({ message }: { message: Message }) {
         marginBottom: 16,
       }}
     >
-      <div style={{ maxWidth: "75%" }}>
+      <div style={{ maxWidth: "min(75%, 420px)" }}>
         <div
           style={{
             padding: "12px 16px",
@@ -26,9 +33,21 @@ export default function MessageBubble({ message }: { message: Message }) {
             whiteSpace: "pre-wrap",
             fontSize: 14.5,
             lineHeight: 1.55,
+            minHeight: isEmpty && isStreaming ? 20 : undefined,
           }}
         >
-          {message.content}
+          {isEmpty && isStreaming ? (
+            <span style={{ display: "flex", gap: 4 }}>
+              <span className="typing-dot" />
+              <span className="typing-dot" />
+              <span className="typing-dot" />
+            </span>
+          ) : (
+            <>
+              {message.content}
+              {isStreaming && <span className="stream-cursor" />}
+            </>
+          )}
         </div>
         {message.citations && message.citations.length > 0 && (
           <CitationChips citations={message.citations} />
