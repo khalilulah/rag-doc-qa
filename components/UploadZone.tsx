@@ -2,6 +2,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { FileText } from "lucide-react";
 
 export default function UploadZone({
   onUpload,
@@ -27,16 +28,16 @@ export default function UploadZone({
           const file = e.dataTransfer.files[0];
           if (file) onUpload(file);
         }}
-        onClick={() => inputRef.current?.click()}
+        onClick={() => !isUploading && inputRef.current?.click()}
         style={{
-          width: 360,
+          width: "min(360px, 90vw)",
           padding: "48px 32px",
           textAlign: "center",
           background: "var(--surface)",
           border: `1.5px dashed ${isDragging ? "var(--accent)" : "var(--border)"}`,
           borderRadius: "var(--radius-lg)",
           boxShadow: isDragging ? "var(--shadow-hover)" : "var(--shadow-rest)",
-          cursor: "pointer",
+          cursor: isUploading ? "default" : "pointer",
           transition: "box-shadow 0.15s ease, border-color 0.15s ease",
         }}
       >
@@ -50,10 +51,30 @@ export default function UploadZone({
             if (file) onUpload(file);
           }}
         />
+
         {isUploading ? (
-          <p style={{ color: "var(--text-muted)" }}>Reading your document…</p>
+          <>
+            <p
+              style={{
+                color: "var(--text-muted)",
+                marginBottom: 14,
+                fontSize: 14,
+              }}
+            >
+              Reading your document…
+            </p>
+            <div className="progress-track">
+              <div className="progress-bar" />
+            </div>
+          </>
         ) : (
           <>
+            <div
+              className="float-icon"
+              style={{ marginBottom: 16, color: "var(--accent)" }}
+            >
+              <FileText size={40} strokeWidth={1.5} />
+            </div>
             <p style={{ fontWeight: 600, marginBottom: 4 }}>Drop a PDF here</p>
             <p style={{ color: "var(--text-muted)", fontSize: 14 }}>
               or click to browse
