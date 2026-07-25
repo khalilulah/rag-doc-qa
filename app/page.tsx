@@ -20,8 +20,11 @@ type AppState =
 export default function Home() {
   const [state, setState] = useState<AppState>({ status: "idle" });
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isAsking, setIsAsking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleUpload(file: File) {
+    setError(null);
     setState({ status: "uploading" });
     const formData = new FormData();
     formData.append("file", file);
@@ -41,7 +44,7 @@ export default function Home() {
         filename: file.name,
       });
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Upload failed");
+      setError(err instanceof Error ? err.message : "Upload failed");
       setState({ status: "idle" });
     }
   }
@@ -49,19 +52,31 @@ export default function Home() {
   async function handleAsk(question: string) {
     if (state.status !== "ready") return;
 
+    setError(null);
     setMessages((prev) => [...prev, { role: "user", content: question }]);
+    setIsAsking(true);
 
-    const res = await fetch("/api/query", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ documentId: state.documentId, question }),
-    });
-    const data = await res.json();
+    try {
+      const res = await fetch("/api/query", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ documentId: state.documentId, question }),
+      });
+      const data = await res.json();
 
-    setMessages((prev) => [
-      ...prev,
-      { role: "assistant", content: data.answer, citations: data.citations },
-    ]);
+      if (!res.ok) throw new Error(data.error ?? "Something went wrong");
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: data.answer, citations: data.citations },
+      ]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to get an answer");
+      // roll back the user's message so it doesn't look like it was answered
+      setMessages((prev) => prev.slice(0, -1));
+    } finally {
+      setIsAsking(false);
+    }
   }
 
   return (
@@ -86,8 +101,25 @@ export default function Home() {
         )}
       </header>
 
+      {error && (
+        <div
+          role="alert"
+          style={{
+            margin: "12px 24px 0",
+            padding: "10px 14px",
+            background: "#FEF2F2",
+            border: "1px solid #FECACA",
+            color: "#B91C1C",
+            borderRadius: "var(--radius-sm)",
+            fontSize: 13.5,
+          }}
+        >
+          {error}
+        </div>
+      )}
+
       {state.status === "ready" ? (
-        <ChatWindow messages={messages} onAsk={handleAsk} />
+        <ChatWindow messages={messages} onAsk={handleAsk} isAsking={isAsking} />
       ) : (
         <UploadZone
           onUpload={handleUpload}

@@ -1,21 +1,28 @@
 // components/ChatWindow.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import type { Message } from "@/app/page";
 import MessageBubble from "./MessageBubble";
 
 export default function ChatWindow({
   messages,
   onAsk,
+  isAsking,
 }: {
   messages: Message[];
   onAsk: (question: string) => void;
+  isAsking: boolean;
 }) {
   const [input, setInput] = useState("");
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, isAsking]);
 
   function submit() {
-    if (!input.trim()) return;
+    if (!input.trim() || isAsking) return;
     onAsk(input);
     setInput("");
   }
@@ -29,7 +36,7 @@ export default function ChatWindow({
         overflow: "hidden",
       }}
     >
-      <div style={{ flex: 1, overflowY: "auto", padding: 24 }}>
+      <div style={{ flex: 1, overflowY: "auto", padding: "24px 24px 8px" }}>
         {messages.length === 0 && (
           <p style={{ color: "var(--text-muted)" }}>
             Ask anything about your document.
@@ -38,9 +45,33 @@ export default function ChatWindow({
         {messages.map((m, i) => (
           <MessageBubble key={i} message={m} />
         ))}
+        {isAsking && (
+          <div
+            className="message-in"
+            style={{ display: "flex", marginBottom: 16 }}
+          >
+            <div
+              style={{
+                padding: "12px 16px",
+                borderRadius: "var(--radius-lg)",
+                background: "var(--surface)",
+                border: "1px solid var(--border)",
+                boxShadow: "var(--shadow-rest)",
+                display: "flex",
+                gap: 4,
+              }}
+            >
+              <span className="typing-dot" />
+              <span className="typing-dot" />
+              <span className="typing-dot" />
+            </div>
+          </div>
+        )}
+        <div ref={bottomRef} />
       </div>
 
       <div
+        className="chat-input-row"
         style={{
           display: "flex",
           gap: 8,
@@ -53,17 +84,19 @@ export default function ChatWindow({
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && submit()}
           placeholder="Ask a question…"
+          disabled={isAsking}
           style={{
             flex: 1,
             padding: "10px 14px",
             borderRadius: "var(--radius-sm)",
             border: "1px solid var(--border)",
             fontFamily: "inherit",
-            fontSize: 14,
+            fontSize: 16, // 16px, not 14 — prevents iOS Safari auto-zooming into the input on focus
           }}
         />
         <button
           onClick={submit}
+          disabled={isAsking}
           style={{
             padding: "10px 18px",
             borderRadius: "var(--radius-sm)",
@@ -71,7 +104,8 @@ export default function ChatWindow({
             background: "var(--accent)",
             color: "white",
             fontWeight: 600,
-            cursor: "pointer",
+            cursor: isAsking ? "default" : "pointer",
+            opacity: isAsking ? 0.6 : 1,
           }}
         >
           Send

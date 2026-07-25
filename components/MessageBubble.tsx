@@ -7,6 +7,7 @@ export default function MessageBubble({ message }: { message: Message }) {
 
   return (
     <div
+      className="message-in"
       style={{
         display: "flex",
         justifyContent: isUser ? "flex-end" : "flex-start",
