@@ -92,7 +92,7 @@ ${context}
 
 Question: ${question}
 
-Answer clearly and directly. Do not mention chunks, page numbers, or sources in your answer — that information is tracked separately.`;
+Answer. Do not mention chunks, page numbers, or sources in your answer — that information is tracked separately.`;
 
       //uncomment if answers still show page number and chunk
       // if (!answer) {

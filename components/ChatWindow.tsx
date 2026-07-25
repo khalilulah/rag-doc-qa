@@ -4,6 +4,8 @@
 import { useState, useRef, useEffect } from "react";
 import type { Message } from "@/app/page";
 import MessageBubble from "./MessageBubble";
+// components/ChatWindow.tsx — top of file
+import { Send } from "lucide-react";
 
 export default function ChatWindow({
   messages,
@@ -79,21 +81,23 @@ export default function ChatWindow({
             fontSize: 16, // 16px, not 14 — prevents iOS Safari auto-zooming into the input on focus
           }}
         />
+
         <button
           onClick={submit}
           disabled={isAsking}
           style={{
-            padding: "10px 18px",
+            padding: "10px 16px",
             borderRadius: "var(--radius-sm)",
             border: "none",
             background: "var(--accent)",
             color: "white",
-            fontWeight: 600,
+            display: "grid",
+            placeItems: "center",
             cursor: isAsking ? "default" : "pointer",
             opacity: isAsking ? 0.6 : 1,
           }}
         >
-          Send
+          <Send size={18} />
         </button>
       </div>
     </div>
