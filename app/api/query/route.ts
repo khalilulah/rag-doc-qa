@@ -4,7 +4,7 @@ import { supabase } from "@/lib/supabase";
 import Groq from "groq-sdk";
 
 export const runtime = "nodejs";
-
+export const maxDuration = 60;
 interface MatchedChunk {
   id: string;
   content: string;
