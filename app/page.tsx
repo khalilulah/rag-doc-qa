@@ -1,7 +1,7 @@
 // app/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import UploadZone from "@/components/UploadZone";
 import ChatWindow from "@/components/ChatWindow";
 
@@ -17,11 +17,74 @@ type AppState =
   | { status: "uploading" }
   | { status: "ready"; documentId: string; filename: string };
 
+const SESSION_KEY = "docqa_session";
+const SESSION_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours — mirrors the backend cleanup TTL
+
 export default function Home() {
   const [state, setState] = useState<AppState>({ status: "idle" });
   const [messages, setMessages] = useState<Message[]>([]);
   const [isAsking, setIsAsking] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Restore a cached session on first load, if it hasn't expired
+  useEffect(() => {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return;
+
+    try {
+      const saved = JSON.parse(raw);
+      const isExpired = Date.now() - saved.createdAt > SESSION_TTL_MS;
+
+      if (isExpired) {
+        localStorage.removeItem(SESSION_KEY);
+        return;
+      }
+
+      setState({
+        status: "ready",
+        documentId: saved.documentId,
+        filename: saved.filename,
+      });
+      setMessages(saved.messages ?? []);
+    } catch {
+      localStorage.removeItem(SESSION_KEY); // corrupted cache — don't crash on it, just drop it
+    }
+  }, []);
+
+  // Persist whenever the ready-state document or the conversation changes
+  useEffect(() => {
+    if (state.status !== "ready") return;
+
+    const existing = localStorage.getItem(SESSION_KEY);
+    const createdAt = existing ? JSON.parse(existing).createdAt : Date.now();
+
+    localStorage.setItem(
+      SESSION_KEY,
+      JSON.stringify({
+        documentId: state.documentId,
+        filename: state.filename,
+        messages,
+        createdAt,
+      }),
+    );
+  }, [state, messages]);
+
+  function handleClearChat() {
+    setMessages([]);
+    if (state.status === "ready") {
+      const existing = localStorage.getItem(SESSION_KEY);
+      const createdAt = existing ? JSON.parse(existing).createdAt : Date.now();
+      localStorage.setItem(
+        SESSION_KEY,
+        JSON.stringify({
+          documentId: state.documentId,
+          filename: state.filename,
+          messages: [],
+          createdAt,
+        }),
+      );
+    }
+  }
 
   async function handleUpload(file: File) {
     setError(null);
@@ -135,7 +198,30 @@ export default function Home() {
       >
         <strong>DocQA</strong>
         {state.status === "ready" && (
-          <span className="mono filename-text">{state.filename}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span
+              className="mono"
+              style={{ fontSize: 13, color: "var(--text-muted)" }}
+            >
+              {state.filename}
+            </span>
+            {messages.length > 0 && (
+              <button
+                onClick={handleClearChat}
+                style={{
+                  fontSize: 12.5,
+                  padding: "5px 10px",
+                  borderRadius: "var(--radius-sm)",
+                  border: "1px solid var(--border)",
+                  background: "var(--surface)",
+                  color: "var(--text-muted)",
+                  cursor: "pointer",
+                }}
+              >
+                Clear chat
+              </button>
+            )}
+          </div>
         )}
       </header>
 
