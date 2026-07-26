@@ -1,4 +1,3 @@
-// app/api/ingest/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { extractPages } from "@/lib/pdf";
